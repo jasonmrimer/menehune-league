@@ -1,6 +1,7 @@
 package com.example;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Player {
     int playerId;
@@ -34,5 +35,23 @@ public class Player {
     @Override
     public String toString() {
         return name + " (" + playerId + ")";
+    }
+
+    // Override equals to compare players by their attributes
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // Check for reference equality
+        if (obj == null || getClass() != obj.getClass()) return false; // Check for null or different class
+
+        Player other = (Player) obj; // Cast to Player
+        return playerId == other.playerId && // Compare playerId
+               Objects.equals(name, other.name) && // Compare name
+               Objects.equals(positions, other.positions); // Compare positions
+    }
+
+    // Override hashCode to generate a hash based on player attributes
+    @Override
+    public int hashCode() {
+        return Objects.hash(playerId, name, positions); // Generate hash based on playerId, name, and positions
     }
 }
