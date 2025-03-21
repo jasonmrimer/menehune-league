@@ -8,11 +8,31 @@ public class LineupGenerator {
     List<Player> players;
     List<Player> dhOnlyPlayers;
     List<Player> outfielders;
+    List<Map<Position, Player>> generatedLineups;
 
     public LineupGenerator(List<Player> players) {
         this.players = players;
-        dhOnlyPlayers = new ArrayList<>();
-        outfielders = new ArrayList<>();
+        generatedLineups = new ArrayList<>();
+    
+        // Populate DH-only players
+        this.dhOnlyPlayers = extractOnlyDHPlayers(players);
+    
+        // Populate outfielders
+        this.outfielders = extractOutfielders(players);
+    }
+
+    private List<Player> extractOutfielders(List<Player> players) {
+        return this.outfielders = players.stream()
+                .filter(p -> p.canPlayPosition(Position.LEFT_FIELD) ||
+                             p.canPlayPosition(Position.CENTER_FIELD) ||
+                             p.canPlayPosition(Position.RIGHT_FIELD))
+                .collect(Collectors.toList());
+    }
+
+    private List<Player> extractOnlyDHPlayers(List<Player> players) {
+        return this.dhOnlyPlayers = players.stream()
+                .filter(Player::isDhOnly) // Only players who can exclusively DH
+                .collect(Collectors.toList());
     }
 
     public void run() {
@@ -45,20 +65,22 @@ public class LineupGenerator {
                                 List<Player> dhCandidates = availableDhCandidates(used);
                                 for (Player dh : dhCandidates) {
                                     // Build lineup map
-                                    Map<String, Integer> lineup = new HashMap<>();
-                                    lineup.put("C", c.playerId);
-                                    lineup.put("1B", b1.playerId);
-                                    lineup.put("2B", b2.playerId);
-                                    lineup.put("3B", b3.playerId);
-                                    lineup.put("SS", ss.playerId);
+                                    Map<Position, Player> lineup = new HashMap<>();
+                                    lineup.put(Position.CATCHER, c);
+                                    lineup.put(Position.FIRST_BASE, b1);
+                                    lineup.put(Position.SECOND_BASE, b2);
+                                    lineup.put(Position.THIRD_BASE, b3);
+                                    lineup.put(Position.SHORTSTOP, ss);
 
                                     // Assign OFs to LF, CF, RF (order doesn't matter)
-                                    lineup.put("LF", ofs.get(0).playerId);
-                                    lineup.put("CF", ofs.get(1).playerId);
-                                    lineup.put("RF", ofs.get(2).playerId);
+                                    lineup.put(Position.LEFT_FIELD, ofs.get(0));
+                                    lineup.put(Position.CENTER_FIELD, ofs.get(1));
+                                    lineup.put(Position.RIGHT_FIELD, ofs.get(2));
 
-                                    lineup.put("DH", dh.playerId);
-
+                                    lineup.put(Position.DESIGNATED_HITTER, dh);
+                                    System.out.println("lineup " + lineup);
+                                    // Store the lineup
+                                    generatedLineups.add(lineup);
                                     // saveLineupToDatabase(lineup);
                                 }
                             }
@@ -117,6 +139,10 @@ public class LineupGenerator {
             combineHelper(list, temp, i + 1, k, result);
             temp.remove(temp.size() - 1);
         }
+    }
+
+    public List<Map<Position, Player>> getGeneratedLineups() {
+        return generatedLineups;
     }
 
 }
