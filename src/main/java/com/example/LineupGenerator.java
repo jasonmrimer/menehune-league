@@ -8,15 +8,15 @@ public class LineupGenerator {
     List<Player> players;
     List<Player> dhOnlyPlayers;
     List<Player> outfielders;
-    List<Map<Position, Player>> generatedLineups;
+    List<Map<Position, Object>> generatedLineups;
 
     public LineupGenerator(List<Player> players) {
         this.players = players;
         generatedLineups = new ArrayList<>();
-    
+
         // Populate DH-only players
         this.dhOnlyPlayers = extractOnlyDHPlayers(players);
-    
+
         // Populate outfielders
         this.outfielders = extractOutfielders(players);
     }
@@ -24,8 +24,8 @@ public class LineupGenerator {
     private List<Player> extractOutfielders(List<Player> players) {
         return this.outfielders = players.stream()
                 .filter(p -> p.canPlayPosition(Position.LEFT_FIELD) ||
-                             p.canPlayPosition(Position.CENTER_FIELD) ||
-                             p.canPlayPosition(Position.RIGHT_FIELD))
+                        p.canPlayPosition(Position.CENTER_FIELD) ||
+                        p.canPlayPosition(Position.RIGHT_FIELD))
                 .collect(Collectors.toList());
     }
 
@@ -45,13 +45,17 @@ public class LineupGenerator {
         // Loop through all eligible combinations for infield + catcher
         for (Player c : catchers) {
             for (Player b1 : firstBasemen) {
-                if (overlap(c, b1)) continue;
+                if (overlap(c, b1))
+                    continue;
                 for (Player b2 : secondBasemen) {
-                    if (overlap(c, b1, b2)) continue;
+                    if (overlap(c, b1, b2))
+                        continue;
                     for (Player b3 : thirdBasemen) {
-                        if (overlap(c, b1, b2, b3)) continue;
+                        if (overlap(c, b1, b2, b3))
+                            continue;
                         for (Player ss : shortstops) {
-                            if (overlap(c, b1, b2, b3, ss)) continue;
+                            if (overlap(c, b1, b2, b3, ss))
+                                continue;
 
                             // Choose 3 outfielders (combination, order doesn't matter)
                             List<Player> outfieldPool = availableOutfielders(c, b1, b2, b3, ss);
@@ -65,23 +69,20 @@ public class LineupGenerator {
                                 List<Player> dhCandidates = availableDhCandidates(used);
                                 for (Player dh : dhCandidates) {
                                     // Build lineup map
-                                    Map<Position, Player> lineup = new HashMap<>();
+                                    Map<Position, Object> lineup = new HashMap<>();
                                     lineup.put(Position.CATCHER, c);
                                     lineup.put(Position.FIRST_BASE, b1);
                                     lineup.put(Position.SECOND_BASE, b2);
                                     lineup.put(Position.THIRD_BASE, b3);
                                     lineup.put(Position.SHORTSTOP, ss);
 
-                                    // Assign OFs to LF, CF, RF (order doesn't matter)
-                                    lineup.put(Position.LEFT_FIELD, ofs.get(0));
-                                    lineup.put(Position.CENTER_FIELD, ofs.get(1));
-                                    lineup.put(Position.RIGHT_FIELD, ofs.get(2));
+                                    // Assign outfielders as a set
+                                    lineup.put(Position.OUTFIELD, new HashSet<>(ofs));
 
                                     lineup.put(Position.DESIGNATED_HITTER, dh);
-                                    System.out.println("lineup " + lineup);
+
                                     // Store the lineup
                                     generatedLineups.add(lineup);
-                                    // saveLineupToDatabase(lineup);
                                 }
                             }
                         }
@@ -92,8 +93,6 @@ public class LineupGenerator {
 
         System.out.println("Finished generating lineups!");
     }
-
-    
 
     private List<Player> filterByPosition(Position pos) {
         return players.stream()
@@ -118,7 +117,8 @@ public class LineupGenerator {
     private boolean overlap(Player... ps) {
         Set<Integer> ids = new HashSet<>();
         for (Player p : ps) {
-            if (!ids.add(p.playerId)) return true; // duplicate found
+            if (!ids.add(p.playerId))
+                return true; // duplicate found
         }
         return false;
     }
@@ -141,7 +141,7 @@ public class LineupGenerator {
         }
     }
 
-    public List<Map<Position, Player>> getGeneratedLineups() {
+    public List<Map<Position, Object>> getGeneratedLineups() {
         return generatedLineups;
     }
 

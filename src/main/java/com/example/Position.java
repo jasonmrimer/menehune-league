@@ -12,7 +12,8 @@ public enum Position {
     RIGHT_FIELD("RF"),
     CENTER_FIELD("CF"),
     LEFT_FIELD("LF"),
-    DESIGNATED_HITTER("DH");
+    DESIGNATED_HITTER("DH"), 
+    OUTFIELD("OF");
 
     private final String abbreviation;
 
